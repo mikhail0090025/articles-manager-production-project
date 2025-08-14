@@ -1,4 +1,6 @@
-CREATE TABLE users (
+CREATE EXTENSION IF NOT EXISTS vector;
+
+CREATE TABLE IF NOT EXISTS users (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
     surname VARCHAR(50) NOT NULL,
@@ -8,7 +10,7 @@ CREATE TABLE users (
     registration_date TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE messages (
+CREATE TABLE IF NOT EXISTS messages (
     id BIGSERIAL PRIMARY KEY,
     text TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -18,13 +20,11 @@ CREATE TABLE messages (
         ON DELETE CASCADE
 );
 
-CREATE EXTENSION IF NOT EXISTS vector;
-
-CREATE TABLE knowledge_base (
+CREATE TABLE IF NOT EXISTS knowledge_base (
     id BIGSERIAL PRIMARY KEY,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
-    embedding vector(1536) NOT NULL,
+    embedding vector(386) NOT NULL,
     source_url TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
