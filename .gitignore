@@ -1,13 +1,10 @@
 gitignore_folder
-.env
 
 # Python / user_service
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-.env
-*.env
 
 venv/
 .env/
