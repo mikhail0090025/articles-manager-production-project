@@ -33,33 +33,34 @@ jobs:
       - name: Run Docker containers
         run: sudo docker-compose -f docker-compose.yml up -d
 
-      - name: Wait for services
+      - name: Wait for services ready
         run: |
-          # wait up to 60s for service ports
-          for i in {1..60}; do
-            if curl -sS http://localhost:8000/ >/dev/null 2>&1 && curl -sS http://localhost:8001/ >/dev/null 2>&1; then
-              echo "services are up"; break
+          echo "Waiting for services..."
+          # ждём порты до таймаута, проверяем health URL-ы вместо жесткого sleep
+          for i in {1..30}; do
+            if curl -sSf http://localhost:8000/ >/dev/null && curl -sSf http://localhost:8001/ >/dev/null; then
+              echo "Services are up"; break
             fi
-            sleep 1
-            echo "waiting..."
+            echo "waiting... ($i)"
+            sleep 3
           done
 
-      - name: Run Unit Tests (user_service)
+      - name: Run Unit Tests (use run --rm)
         run: |
-          sudo docker-compose run --rm user_service pytest tests/unit -q
-
-      - name: Run Unit Tests (vector_service)
-        run: |
-          sudo docker-compose run --rm vector_service pytest tests/unit -q
+          # запускаем временный контейнер на базе собранного образа
+          docker-compose run --rm user_service pytest -q || (docker-compose logs user_service && exit 1)
+          docker-compose run --rm vector_service pytest -q || (docker-compose logs vector_service && exit 1)
 
       - name: Run Integration Tests
         run: |
-          sudo docker-compose run --rm user_service pytest tests/integration -q
-          sudo docker-compose run --rm vector_service pytest tests/integration -q
+          docker-compose run --rm user_service pytest tests/integration -q || (docker-compose logs user_service && exit 1)
+          docker-compose run --rm vector_service pytest tests/integration -q || (docker-compose logs vector_service && exit 1)
 
       - name: Run E2E Tests
         run: |
-          sudo docker-compose run --rm vector_service pytest tests/e2e -q
+          # E2E — делаем реальный HTTP запрос к запущенному сервису
+          sleep 5
+          docker-compose run --rm vector_service pytest tests/e2e -q || (docker-compose logs vector_service && exit 1)
 
       - name: Show logs on failure
         if: failure()
