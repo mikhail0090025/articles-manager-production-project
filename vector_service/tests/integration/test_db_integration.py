@@ -1,5 +1,5 @@
 import pytest
-from vector_service.vector_utils import get_embedding
+from vector_utils import get_embedding
 from sqlalchemy import create_engine, text
 
 DATABASE_URL = "postgresql://chatbot:secret@postgres:5432/chatbot_db"
