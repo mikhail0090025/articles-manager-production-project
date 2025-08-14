@@ -8,4 +8,10 @@ RUN pip install --no-cache-dir pytest
 
 COPY app/ .
 
+RUN apt-get update && \
+    apt-get install -y tree && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN tree
+
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
