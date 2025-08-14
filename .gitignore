@@ -1,2 +1,29 @@
 gitignore_folder
 .env
+
+# Python / user_service
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+*.env
+
+venv/
+.env/
+
+# Postgres data
+infra/pgdata/
+
+*.log
+docker-compose.override.yml
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
