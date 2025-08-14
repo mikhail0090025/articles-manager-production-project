@@ -35,20 +35,18 @@ jobs:
 
       - name: Run Unit Tests
         run: |
-          docker-compose exec user_service ls -R /app/tests
-          docker-compose exec vector_service ls -R /app/tests
-          docker-compose exec user_service pytest ./tests/unit
-          docker-compose exec vector_service pytest ./tests/unit
+          docker-compose exec user_service pytest app/tests/unit
+          docker-compose exec vector_service pytest app/tests/unit
 
       - name: Run Integration Tests
         run: |
-          docker-compose exec user_service pytest ./tests/integration
-          docker-compose exec vector_service pytest ./tests/integration
+          docker-compose exec user_service pytest app/tests/integration
+          docker-compose exec vector_service pytest app/tests/integration
 
       - name: Run E2E Tests
         run: |
           sleep 15
-          docker-compose exec vector_service pytest ./tests/e2e
+          docker-compose exec vector_service pytest app/tests/e2e
 
       - name: Show logs on failure
         if: failure()
