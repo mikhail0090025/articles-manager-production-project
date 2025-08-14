@@ -35,7 +35,6 @@ jobs:
 
       - name: Run Unit Tests
         run: |
-          tree
           docker-compose exec user_service pytest tests/unit
           docker-compose exec vector_service pytest tests/unit
 
