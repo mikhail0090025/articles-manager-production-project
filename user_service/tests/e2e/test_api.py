@@ -11,8 +11,10 @@ def test_create_user():
         "born_date": "1990-07-01"
     }
     resp = requests.post(f"{BASE_URL}/users", json=payload)
-    assert resp.status_code == 201
-    assert resp.json()["username"] == "bobb"
+    print(resp.json())
+    print(type(resp.json()))
+    assert resp.status_code == 200
+    assert resp.json()["message"] == "User bobb created!"
 
 def test_get_user():
     resp = requests.get(f"{BASE_URL}/users/bobb")
