@@ -47,8 +47,12 @@ jobs:
 
       - name: Run Unit Tests
         run: |
-          docker-compose exec -T user_service pytest
-          docker-compose exec -T vector_service pytest
+          echo "User service folders and files:"
+          docker-compose exec -T user_service ls
+          echo "Vector service folders and files:"
+          docker-compose exec -T vector_service ls
+          docker-compose exec -T user_service pytest tests/unit
+          docker-compose exec -T vector_service pytest tests/unit
 
       - name: Run Integration Tests
         run: |
