@@ -52,8 +52,8 @@ jobs:
           docker-compose exec -T vector_service tree
           sleep 40 # Wait for services to stabilize
           echo "Tests:"
-          docker-compose exec -T user_service pytest
-          docker-compose exec -T vector_service pytest
+          docker-compose exec -T user_service bash -c "PYTHONPATH=/app pytest"
+          docker-compose exec -T vector_service bash -c "PYTHONPATH=/app pytest"
 
       - name: Show logs on failure
         if: failure()
