@@ -36,7 +36,6 @@ jobs:
       - name: Wait for services ready
         run: |
           echo "Waiting for services..."
-          # ждём порты до таймаута, проверяем health URL-ы вместо жесткого sleep
           for i in {1..30}; do
             if curl -sSf http://localhost:8000/ >/dev/null && curl -sSf http://localhost:8001/ >/dev/null; then
               echo "Services are up"; break
@@ -51,6 +50,7 @@ jobs:
           docker-compose exec -T user_service tree
           echo "Vector service folders and files:"
           docker-compose exec -T vector_service tree
+          sleep 40 # Wait for services to stabilize
           echo "Tests:"
           docker-compose exec -T user_service pytest
           docker-compose exec -T vector_service pytest
