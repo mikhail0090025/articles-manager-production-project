@@ -2,10 +2,12 @@ import os
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
+import json
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://chatbot:secret@postgres:5432/chatbot_db")
+print("Using DATABASE_URL:", DATABASE_URL)
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine)
@@ -20,7 +22,7 @@ def search_vectors(query_embedding, top_k=5):
             LIMIT :limit
         """)
         rows = session.execute(sql, {
-            "embedding": query_embedding,
+            "embedding": json.dumps(query_embedding.tolist()),
             "limit": top_k
         }).fetchall()
         return [dict(row._mapping) for row in rows]

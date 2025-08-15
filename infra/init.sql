@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS knowledge_base (
     id BIGSERIAL PRIMARY KEY,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
-    embedding vector(386) NOT NULL,
+    embedding vector(384) NOT NULL,
     source_url TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

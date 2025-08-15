@@ -11,6 +11,10 @@ class SearchRequest(BaseModel):
 
 @app.post("/search")
 def search(req: SearchRequest):
-    embedding = get_embedding(req.query)
-    results = search_vectors(embedding, top_k=req.top_k)
-    return {"query": req.query, "results": results}
+    try:
+        embedding = get_embedding(req.query)
+        results = search_vectors(embedding, top_k=req.top_k)
+        return {"query": req.query, "results": results}
+    except Exception as e:
+        print("Error during search:", str(e))
+        return {"error": str(e)}

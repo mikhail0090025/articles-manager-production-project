@@ -1,8 +1,7 @@
 import pytest
 from sqlalchemy import create_engine, text
 import os
-from db import insert_user, db_connection
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://chatbot:secret@postgres:5432/chatbot_db")
+from db import insert_user, db_connection, DATABASE_URL
 
 @pytest.fixture(autouse=True)
 def cleanup_users(db_connection):
