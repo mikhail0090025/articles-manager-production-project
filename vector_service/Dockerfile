@@ -15,6 +15,4 @@ RUN apt-get update && \
 
 RUN tree
 
-RUN echo "=== /app ===" && ls -R
-
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001", "--reload"]

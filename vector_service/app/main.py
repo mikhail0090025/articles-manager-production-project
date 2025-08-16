@@ -9,6 +9,9 @@ class SearchRequest(BaseModel):
     query: str
     top_k: int = 5
 
+class EmbeddingRequest(BaseModel):
+    text: str
+
 @app.post("/search")
 def search(req: SearchRequest):
     try:
@@ -17,4 +20,13 @@ def search(req: SearchRequest):
         return {"query": req.query, "results": results}
     except Exception as e:
         print("Error during search:", str(e))
+        return {"error": str(e)}
+
+@app.post("/get_embedding")
+def get_embedding_endpoint(req: EmbeddingRequest):
+    try:
+        embedding = get_embedding(req.text)
+        return {"embedding": embedding.tolist()}
+    except Exception as e:
+        print("Error during creating embedding:", str(e))
         return {"error": str(e)}

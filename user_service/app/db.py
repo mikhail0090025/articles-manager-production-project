@@ -4,7 +4,6 @@ from contextlib import contextmanager
 import pytest
 
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://chatbot:secret@postgres:5432/chatbot_db")
-print("Using DATABASE_URL:", DATABASE_URL)
 
 @pytest.fixture
 def db_connection():
