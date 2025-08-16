@@ -49,3 +49,16 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
     ports:
       - "8002:8002"
+  
+  gateway_service:
+    build: ./gateway_service
+    depends_on:
+      - user_service
+      - vector_service
+      - nlp_service
+    environment:
+      USER_SERVICE_URL: http://user_service:8000
+      VECTOR_SERVICE_URL: http://vector_service:8001
+      NLP_SERVICE_URL: http://nlp_service:8002
+    ports:
+      - "8003:8003"
