@@ -6,7 +6,7 @@ import numpy as np
 
 load_dotenv()
 
-model = SentenceTransformer('all-MiniLM-L6-v2')
+model = SentenceTransformer('all-MiniLM-L12-v2')
 
 # Popular Sentence-Transformer models for embeddings:
 # 'all-MiniLM-L6-v2'       -> Small, fast, 384-dimensional, good for most tasks

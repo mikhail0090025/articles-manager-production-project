@@ -44,3 +44,10 @@ def get_user(db, username):
             "born_date": str(result[3])
         }
     return None
+
+def delete_user(db, username):
+    db.execute(
+        text("DELETE FROM users WHERE username=:u"),
+        {"u": username}
+    )
+    db.commit()

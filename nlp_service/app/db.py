@@ -13,18 +13,21 @@ DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://chatbot:secret@postgres:5
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine)
 
-def add_article(title, content, source_url=None, retries=15):
+def add_article(title, content, source_url=None, retries=3):
+    embedding_response = None
     for attempt in range(retries):
         try:
             embedding_response = requests.post(
                 "http://vector_service:8001/get_embedding",
-                json={"text": title}
+                json={"text": content}
             )
             embedding_response.raise_for_status()
             break
         except requests.RequestException as e:
             print(f"Attempt {attempt + 1}/{retries} failed: {e}")
             time.sleep(3)
+    if embedding_response is None:
+        raise RuntimeError("Couldnt get embedding after all attempts")
     embedding = embedding_response.json().get("embedding")
     with SessionLocal() as session:
         sql = text("""

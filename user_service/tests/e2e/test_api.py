@@ -20,3 +20,7 @@ def test_get_user():
     resp = requests.get(f"{BASE_URL}/users/bobb")
     assert resp.status_code == 200
     assert resp.json()["name"] == "Bob"
+
+def test_delete_user():
+    resp = requests.delete(f"{BASE_URL}/users/bobb")
+    assert resp.status_code == 200
