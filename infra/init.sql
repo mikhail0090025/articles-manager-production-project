@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS messages (
 
 CREATE TABLE IF NOT EXISTS knowledge_base (
     id BIGSERIAL PRIMARY KEY,
-    title TEXT NOT NULL,
+    title TEXT NOT NULL UNIQUE,
     content TEXT NOT NULL,
     embedding vector(384) NOT NULL,
     source_url TEXT,

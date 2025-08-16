@@ -26,5 +26,17 @@
   {
     "file": "article7.txt",
     "title": "Mesambria (Aegean Sea)"
+  },
+  {
+    "file": "article8.txt",
+    "title": "Artificial Intelligence"
+  },
+  {
+    "file": "article9.txt",
+    "title": "Machine Learning"
+  },
+  {
+    "file": "article10.txt",
+    "title": "Network topology"
   }
 ]
