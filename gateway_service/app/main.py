@@ -30,6 +30,8 @@ def create_user(user: UserCreate):
 
 @app.post("/login_user")
 def login_user(user: UserLogin):
+    print("DEBUG: User login request received:", user)
+    print("Requested URL:", f"{user_service_url}/login")
     json_data, status_code = service_request("POST", f"{user_service_url}/login", json=user.model_dump())
     return JSONResponse(content=json_data, status_code=status_code)
 

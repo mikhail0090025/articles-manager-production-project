@@ -33,7 +33,7 @@ def insert_user(db, name, surname, username, password_hash, born_date):
 
 def get_user(db, username):
     result = db.execute(
-        text("SELECT name, surname, username, born_date FROM users WHERE username=:u"),
+        text("SELECT name, surname, username, born_date, password_hash FROM users WHERE username=:u"),
         {"u": username}
     ).fetchone()
     if result:
@@ -41,9 +41,18 @@ def get_user(db, username):
             "name": result[0],
             "surname": result[1],
             "username": result[2],
-            "born_date": str(result[3])
+            "born_date": str(result[3]),
+            "password_hash": result[4]
         }
     return None
+
+def get_all_users(db):
+    result = db.execute(
+        text("SELECT name, surname, username, born_date FROM users")
+    ).fetchall()
+    if result:
+        return result
+    return []
 
 def delete_user(db, username):
     db.execute(

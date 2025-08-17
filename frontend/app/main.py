@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import text
 from fastapi.staticfiles import StaticFiles
@@ -38,12 +38,26 @@ def create_user(user: UserCreate):
 def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
+@app.get("/search_page")
+def search_page(request: Request):
+    session_id = request.cookies.get("session_id")
+    is_authenticated = requests.get("http://user_service:8000/users/authenticated", cookies={"session_id": session_id})
+    if is_authenticated["authenticated"] is False:
+        return templates.TemplateResponse("login.html", {"request": request, "error": "You must be logged in to access this page."})
+    
+    return templates.TemplateResponse("search.html", {"request": request})
+
 @app.post("/login_user")
 def login_user(user: UserLogin):
     try:
         print(user)
         print(type(user))
         response = requests.post("http://gateway_service:8003/login_user", json=user.model_dump())
-        return JSONResponse(content=response.json(), status_code=response.status_code)
+        if response.status_code == 200:
+            return JSONResponse(content=response.json(), status_code=response.status_code)
+        if response.status_code == 404:
+            return JSONResponse(content={"error": "User not found"}, status_code=404)
+        if response.status_code == 401:
+            return JSONResponse(content={"error": "Invalid password"}, status_code=401)
     except requests.RequestException as e:
         return JSONResponse(content={"error": "Service unavailable", "details": str(e)}, status_code=503)
