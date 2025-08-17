@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from db import add_article, add_all_articles, engine, SessionLocal
 from sqlalchemy import text
+from typing import Optional
+from fastapi.responses import JSONResponse
 
 add_all_articles()
 
@@ -10,11 +12,11 @@ app = FastAPI()
 class Article(BaseModel):
     title: str
     content: str
-    source_url: str = None
+    source_url: Optional[str] = None
 
 @app.get("/")
 def root():
-    return {"message": "User service is up!"}
+    return {"message": "NLP service is up!"}
 
 @app.get("/articles")
 def get_articles():
@@ -32,4 +34,4 @@ def create_article(article: Article):
         add_article(article.title, article.content, article.source_url)
         return {"message": f"Article '{article.title}' added successfully!"}
     except Exception as e:
-        return {"error": str(e)}, 500
+        return JSONResponse(status_code=500, content={"error": str(e)})

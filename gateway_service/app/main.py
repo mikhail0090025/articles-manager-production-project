@@ -1,8 +1,9 @@
-from fastapi import FastAPI, Response, status
-from pydantic import BaseModel
+from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 import requests
 import os
 from dotenv import load_dotenv
+from models import UserCreate, UserLogin, Article
 
 load_dotenv()
 
@@ -12,23 +13,7 @@ user_service_url = os.getenv("USER_SERVICE_URL", "http://user_service:8000")
 vector_service_url = os.getenv("VECTOR_SERVICE_URL", "http://vector_service:8001")
 nlp_service_url = os.getenv("NLP_SERVICE_URL", "http://nlp_service:8002")
 
-class UserCreate(BaseModel):
-    name: str
-    surname: str
-    username: str
-    password: str
-    born_date: str
-
-class UserLogin(BaseModel):
-    username: str
-    password: str
-
-class Article(BaseModel):
-    title: str
-    content: str
-    source_url: str | None = None
-
-def service_request(method, url, **kwargs):
+def service_request(method: str, url: str, **kwargs):
     try:
         resp = requests.request(method, url, timeout=10, **kwargs)
         resp.raise_for_status()
@@ -36,37 +21,32 @@ def service_request(method, url, **kwargs):
     except requests.HTTPError as e:
         return {"error": "HTTP error", "details": str(e)}, resp.status_code
     except requests.RequestException as e:
-        return {"error": "Service unavailable", "details": str(e)}, status.HTTP_503_SERVICE_UNAVAILABLE
+        return {"error": "Service unavailable", "details": str(e)}, 503
 
 @app.post("/create_user")
-def create_user(user: UserCreate, response: Response):
+def create_user(user: UserCreate):
     json_data, status_code = service_request("POST", f"{user_service_url}/users", json=user.model_dump())
-    response.status_code = status_code
-    return json_data
+    return JSONResponse(content=json_data, status_code=status_code)
 
 @app.post("/login_user")
-def login_user(user: UserLogin, response: Response):
+def login_user(user: UserLogin):
     json_data, status_code = service_request("POST", f"{user_service_url}/login", json=user.model_dump())
-    response.status_code = status_code
-    return json_data
+    return JSONResponse(content=json_data, status_code=status_code)
 
 @app.post("/add_article")
-def add_article(article: Article, response: Response):
+def add_article(article: Article):
     json_data, status_code = service_request("POST", f"{nlp_service_url}/articles", json=article.model_dump())
-    response.status_code = status_code
-    return json_data
+    return JSONResponse(content=json_data, status_code=status_code)
 
 @app.get("/articles")
-def get_articles(response: Response):
+def get_articles():
     json_data, status_code = service_request("GET", f"{nlp_service_url}/articles")
-    response.status_code = status_code
-    return json_data
+    return JSONResponse(content=json_data, status_code=status_code)
 
 @app.get("/search_articles")
-def search_articles(query: str, response: Response):
+def search_articles(query: str):
     json_data, status_code = service_request("GET", f"{nlp_service_url}/search", params={"query": query})
-    response.status_code = status_code
-    return json_data
+    return JSONResponse(content=json_data, status_code=status_code)
 
 @app.get("/")
 def root():

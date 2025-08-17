@@ -62,3 +62,10 @@ services:
       NLP_SERVICE_URL: http://nlp_service:8002
     ports:
       - "8003:8003"
+  
+  frontend_service:
+    build: ./frontend
+    depends_on:
+      - gateway_service
+    ports:
+      - "8004:8004"

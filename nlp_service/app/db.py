@@ -31,9 +31,8 @@ def add_article(title, content, source_url=None, retries=3):
     embedding = embedding_response.json().get("embedding")
     with SessionLocal() as session:
         sql = text("""
-            INSERT INTO knowledge_base(
-	title, content, embedding, source_url)
-	VALUES (:title, :content, :embedding, :source_url);
+            INSERT INTO knowledge_base(title, content, embedding, source_url)
+	        VALUES (:title, :content, :embedding, :source_url) ON CONFLICT (title) DO NOTHING;
         """)
         session.execute(sql, {
             "title": title,

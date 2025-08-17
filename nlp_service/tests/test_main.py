@@ -9,7 +9,7 @@ client = TestClient(app)
 def test_root():
     response = client.get("/")
     assert response.status_code == 200
-    assert response.json() == {"message": "User service is up!"}
+    assert response.json() == {"message": "NLP service is up!"}
 
 def test_get_articles():
     test_title = "Test Article"
