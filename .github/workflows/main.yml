@@ -46,14 +46,6 @@ jobs:
 
       - name: Run Tests
         run: |
-          echo "User service folders and files:"
-          docker-compose exec -T user_service tree
-          echo "Vector service folders and files:"
-          docker-compose exec -T vector_service tree
-          echo "NLP service folders and files:"
-          docker-compose exec -T nlp_service tree
-          echo "Gateway service folders and files:"
-          docker-compose exec -T gateway_service tree
           sleep 40 # Wait for services to stabilize
           echo "Tests:"
           docker-compose exec -T user_service bash -c "PYTHONPATH=/app pytest"
