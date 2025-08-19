@@ -70,7 +70,7 @@ def search_articles(query: SearchQuery):
 @app.post("/search_articles")
 def search_articles_post(query: SearchQuery, request: Request):
     try:
-        json_data, status_code = service_request("POST", f"{vector_service_url}/search", json=query.model_dump())
+        json_data, status_code = service_request("POST", f"{vector_service_url}/search", json=query.model_dump(), cookies={"session_id": request.cookies.get("session_id")})
         return JSONResponse(content=json_data, status_code=status_code)
     except requests.RequestException as e:
         return JSONResponse(content={"error": "Service unavailable", "details": str(e)}, status_code=503)
@@ -101,3 +101,7 @@ def get_user(username: str):
         return JSONResponse(content=resp.json(), status_code=resp.status_code)
     except requests.RequestException as e:
         return JSONResponse(content={"error": "Service unavailable", "details": str(e)}, status_code=503)
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}

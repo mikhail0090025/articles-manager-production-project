@@ -1,5 +1,4 @@
 import os
-from openai import OpenAI
 from dotenv import load_dotenv
 from sentence_transformers import SentenceTransformer
 import numpy as np

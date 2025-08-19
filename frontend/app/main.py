@@ -96,8 +96,21 @@ def search(query: SearchQuery, request: Request):
         response = requests.post("http://gateway_service:8003/search_articles", json=query.model_dump(), cookies={"session_id": session_id})
         print("DEBUG: Search response:", response.json())
         if response.status_code == 200:
-            return JSONResponse(content=response.json(), status_code=200)
+            result = JSONResponse(content=response.json(), status_code=200)
+            result.set_cookie(
+                key="session_id",
+                value=session_id,
+                httponly=True,
+                max_age=3600,
+                path="/"
+            )
+            print("DEBUG: Search result:", result)
+            return result
         else:
             return JSONResponse(content=response.json(), status_code=response.status_code)
     except requests.RequestException as e:
         return JSONResponse(content={"error": "Service unavailable", "details": str(e)}, status_code=503)
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}

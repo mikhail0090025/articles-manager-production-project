@@ -1,4 +1,11 @@
 services:
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
   postgres:
     build:
       context: ./infra
@@ -29,6 +36,11 @@ services:
       - postgres
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     ports:
       - "8000:8000"
   
@@ -53,6 +65,11 @@ services:
       - postgres
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     ports:
       - "8002:8002"
   
@@ -66,6 +83,11 @@ services:
       USER_SERVICE_URL: http://user_service:8000
       VECTOR_SERVICE_URL: http://vector_service:8001
       NLP_SERVICE_URL: http://nlp_service:8002
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     ports:
       - "8003:8003"
   
@@ -74,5 +96,13 @@ services:
     depends_on:
       - gateway_service
       - user_service
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     ports:
       - "8004:8004"
+
+volumes:
+  redis-data:

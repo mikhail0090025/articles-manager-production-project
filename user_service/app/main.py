@@ -140,3 +140,7 @@ def get_current_user(request: Request):
         "surname": user["surname"],
         "username": user["username"]
     }, status_code=200)
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}

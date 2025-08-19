@@ -25,3 +25,32 @@ def search_vectors(query_embedding, top_k=5):
             "limit": top_k
         }).fetchall()
         return [dict(row._mapping) for row in rows]
+
+def add_query_to_history(query, username):
+    sql_query = text("""
+        INSERT INTO messages (text, user_id)
+        VALUES (:msg, (
+            SELECT id FROM users WHERE username = :username
+        ))
+        RETURNING id;
+    """)
+    with SessionLocal() as session:
+        result = session.execute(sql_query, {"msg": query, "username": username})
+        session.commit()
+
+def get_history(username=None):
+    sql_query = text("""
+        SELECT messages.id AS message_id,
+            messages.text,
+            messages.created_at,
+            messages.user_id,
+            users.username
+        FROM messages
+        JOIN users ON messages.user_id = users.id
+        WHERE (:username IS NULL OR users.username = :username)
+        ORDER BY messages.created_at DESC;
+    """)
+    with SessionLocal() as session:
+        result = session.execute(sql_query, {"username": username})
+        rows = result.fetchall()
+        return [dict(row._mapping) for row in rows] if rows else []
