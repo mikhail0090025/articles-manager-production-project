@@ -31,3 +31,7 @@ def get_embedding_endpoint(req: EmbeddingRequest):
     except Exception as e:
         print("Error during creating embedding:", str(e))
         return {"error": str(e)}
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}

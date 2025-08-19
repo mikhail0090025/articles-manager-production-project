@@ -4,19 +4,30 @@ from db import add_article, add_all_articles, engine, SessionLocal, safe_add_all
 from sqlalchemy import text
 from typing import Optional
 from fastapi.responses import JSONResponse
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global articles_initialized
+    articles_initialized = False
+    print("Service is starting up...")
+    yield
+    print("Service is shutting down...")
 
 articles_initialized = False
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 
 class Article(BaseModel):
     title: str
     content: str
     source_url: Optional[str] = None
 
+'''
 @app.on_event("startup")
 async def startup_event():
     global articles_initialized
     articles_initialized = False
+'''
 
 @app.get("/")
 def root():
