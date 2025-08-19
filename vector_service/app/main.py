@@ -7,7 +7,7 @@ app = FastAPI(title="Vector Search Service")
 
 class SearchRequest(BaseModel):
     query: str
-    top_k: int = 5
+    top_k: int = 2
 
 class EmbeddingRequest(BaseModel):
     text: str
@@ -17,7 +17,8 @@ def search(req: SearchRequest):
     try:
         embedding = get_embedding(req.query)
         results = search_vectors(embedding, top_k=req.top_k)
-        return {"query": req.query, "results": results}
+        result = {"query": req.query, "results": results}
+        return result
     except Exception as e:
         print("Error during search:", str(e))
         return {"error": str(e)}

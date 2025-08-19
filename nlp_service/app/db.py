@@ -57,3 +57,14 @@ def add_all_articles():
         source_url = article.get("source_url", None)
         print(f"Adding article: {title}")
         add_article(title, content, source_url)
+
+def safe_add_all_articles(max_retries=5, delay=5):
+    for attempt in range(1, max_retries + 1):
+        try:
+            add_all_articles()
+            return
+        except Exception as e:
+            print(f"Attempt {attempt}/{max_retries} failed: {e}")
+            if attempt < max_retries:
+                time.sleep(delay)
+    raise RuntimeError("Could not initialize articles after retries")

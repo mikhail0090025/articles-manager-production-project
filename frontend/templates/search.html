@@ -4,20 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="stylesheet" href="/styles/search.css">
 </head>
 <body>
     <header>
-        <h3>{ name } { surname }</h3>
-        <h4>{ username }</h4>
+        <h3>{{ user_data.name }} {{ user_data.surname }}</h3>
+        <h4>{{ user_data.username }}</h4>
     </header>
     <main>
+        <!--
         <h1>Search</h1>
         <input type="text" name="search_query" id="search_query" placeholder="Enter search term" required>
         <button id="search_button">Search</button>
+        -->
         <div id="search_results"></div>
     </main>
     <footer>
         <p>© 2025</p>
     </footer>
+    <script type="text/babel" src="/js/search2.js"></script>
+    <!-- <script src="/js/animations.js" defer></script> -->
 </body>
 </html>

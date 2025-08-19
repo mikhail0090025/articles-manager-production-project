@@ -91,6 +91,9 @@ def login_user(user: UserLogin):
             response = JSONResponse(content={"message": f"User {user.username} logged in successfully!"}, status_code=200)
             session_id = secrets.token_hex(16)
             sessions[session_id] = user_data["username"]
+            print("DEBUG: Generated session ID:", session_id)
+            print("DEBUG: Session data:", sessions)
+            print("DEBUG: User data:", user_data)
 
             response.set_cookie(
                 key="session_id",
@@ -107,9 +110,33 @@ def login_user(user: UserLogin):
         print("Unexpected error while logging in user has occurred:", str(e))
         return JSONResponse(content={"error": str(e)}, status_code=503)
 
-@app.get("/users/authenticated")
+@app.get("/authenticated")
 def get_authenticated_user(request: Request):
     session_id = request.cookies.get("session_id")
     if not session_id or session_id not in sessions:
         return JSONResponse(content={"authenticated": False}, status_code=401)
-    return JSONResponse(content={"authenticated": True, "username": sessions[session_id]}, status_code=200)
+    return JSONResponse(content={"authenticated": True}, status_code=200)
+
+@app.get("/me")
+def get_current_user(request: Request):
+    print("DEBUG: Current user request received")
+    session_id = request.cookies.get("session_id")
+    if not session_id or session_id not in sessions:
+        return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
+
+    username = sessions[session_id]
+    with db_connection_() as conn:
+        user = get_user(conn, username)
+    
+    print("DEBUG: Current user data:", user)
+    print("DEBUG: Session ID:", session_id)
+    print("DEBUG: Session data:", sessions)
+
+    if not user:
+        return JSONResponse(content={"error": "User not found"}, status_code=404)
+
+    return JSONResponse(content={
+        "name": user["name"],
+        "surname": user["surname"],
+        "username": user["username"]
+    }, status_code=200)

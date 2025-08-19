@@ -1,12 +1,11 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from db import add_article, add_all_articles, engine, SessionLocal
+from db import add_article, add_all_articles, engine, SessionLocal, safe_add_all_articles
 from sqlalchemy import text
 from typing import Optional
 from fastapi.responses import JSONResponse
 
-add_all_articles()
-
+articles_initialized = False
 app = FastAPI()
 
 class Article(BaseModel):
@@ -14,12 +13,23 @@ class Article(BaseModel):
     content: str
     source_url: Optional[str] = None
 
+@app.on_event("startup")
+async def startup_event():
+    global articles_initialized
+    articles_initialized = False
+
 @app.get("/")
 def root():
     return {"message": "NLP service is up!"}
 
 @app.get("/articles")
 def get_articles():
+    global articles_initialized
+    if not articles_initialized:
+        print("DEBUG: Initializing articles from JSON file...")
+        safe_add_all_articles()
+        articles_initialized = True
+        print("DEBUG: Articles initialized from JSON file.")
     with SessionLocal() as session:
         sql = text("SELECT id, title, embedding, created_at FROM knowledge_base;")
         result = session.execute(sql)

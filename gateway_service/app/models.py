@@ -15,3 +15,6 @@ class Article(BaseModel):
     title: str
     content: str
     source_url: str | None = None
+
+class SearchQuery(BaseModel):
+    query: str

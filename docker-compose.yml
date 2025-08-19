@@ -45,6 +45,7 @@ services:
     build: ./nlp_service
     depends_on:
       - vector_service
+      - postgres
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
     ports:
@@ -67,5 +68,6 @@ services:
     build: ./frontend
     depends_on:
       - gateway_service
+      - user_service
     ports:
       - "8004:8004"

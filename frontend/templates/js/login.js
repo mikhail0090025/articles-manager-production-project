@@ -23,6 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const json = await response.json();
             if (response.ok) {
                 resultDiv.textContent = json.message || "Login successful!";
+                window.location.href = "/search_page";
             } else {
                 console.log(json);
                 resultDiv.textContent = json.error || "Invalid username or password!";
