@@ -68,3 +68,18 @@ function SearchArticles() {
 
 const root = ReactDOM.createRoot(document.getElementById("search_results"));
 root.render(React.createElement(SearchArticles));
+
+document.getElementById("logout_button").addEventListener("click", () => {
+    fetch("/logout", { method: "POST", credentials: "include" }).then(response => {
+        if (response.ok) {
+            console.log("Logout");
+            window.location.assign("/login_page");
+        } else {
+            console.error("Logout failed:", response.statusText);
+            window.location.assign("/login_page");
+        }
+    }).catch(error => {
+        console.error("Logout error:", error);
+        alert("An error occurred while logging out. Please try again.");
+    });
+});

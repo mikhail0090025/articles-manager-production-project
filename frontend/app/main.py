@@ -35,7 +35,7 @@ def create_user(user: UserCreate):
         return JSONResponse(content={"error": "Service unavailable", "details": str(e)}, status_code=503)
 
 @app.get("/login_page")
-def login_page(request: Request):
+def login_page_endpoint_get(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
 @app.get("/search_page")
@@ -43,7 +43,8 @@ def search_page(request: Request):
     try:
         session_id = request.cookies.get("session_id")
         is_authenticated = requests.get("http://user_service:8000/authenticated", cookies=request.cookies)
-        if is_authenticated.status_code == 401:
+        print("DEBUG: is_authenticated:", is_authenticated.status_code)
+        if is_authenticated.status_code == 401 or not session_id:
             return RedirectResponse(url="/login_page")
         
         user_data = requests.get("http://gateway_service:8003/users/me", cookies={"session_id": session_id})
@@ -110,7 +111,27 @@ def search(query: SearchQuery, request: Request):
             return JSONResponse(content=response.json(), status_code=response.status_code)
     except requests.RequestException as e:
         return JSONResponse(content={"error": "Service unavailable", "details": str(e)}, status_code=503)
-
+    
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+@app.post("/logout")
+def logout(request: Request):
+    try:
+        session_id = request.cookies.get("session_id")
+        if not session_id:
+            return RedirectResponse(url="/login_page")
+        response = requests.post("http://gateway_service:8003/logout", cookies={"session_id": session_id})
+        print("DEBUG: Logout response:", response.json())
+        print(response.status_code)
+        if response.status_code == 200:
+            resp = RedirectResponse(url="/login_page")
+            resp.delete_cookie("session_id")
+            return resp
+        else:
+            return JSONResponse(content=response.json(), status_code=response.status_code)
+    except requests.RequestException as e:
+        return JSONResponse(content={"error": "Service unavailable", "details": str(e)}, status_code=503)
+    except Exception as e:
+        return JSONResponse(content={"error": "Unexpected error", "details": str(e)}, status_code=500)

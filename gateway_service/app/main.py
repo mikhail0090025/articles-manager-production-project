@@ -1,9 +1,10 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse
 import requests
 import os
 from dotenv import load_dotenv
 from models import UserCreate, UserLogin, Article, SearchQuery
+import httpx
 
 load_dotenv()
 
@@ -105,3 +106,16 @@ def get_user(username: str):
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+@app.post("/logout")
+async def logout(request: Request):
+    session_id = request.cookies.get("session_id")
+    if session_id:
+        try:
+            resp = requests.post(f"{user_service_url}/logout", cookies={"session_id": session_id})
+            response = JSONResponse(content=resp.json(), status_code=resp.status_code)
+            response.delete_cookie("session_id")
+            return response
+        except requests.RequestException as e:
+            return JSONResponse(content={"error": "Service unavailable", "details": str(e)}, status_code=503)
+    return JSONResponse(content={"error": "Session ID not found"}, status_code=400)

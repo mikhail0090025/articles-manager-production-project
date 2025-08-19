@@ -1,11 +1,15 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from db import insert_user, get_user, delete_user, db_connection_, get_all_users
 import bcrypt
 from fastapi.responses import JSONResponse
 from models import UserCreate, UserLogin
 import secrets
+import redis
+import uuid
+import json
 
 app = FastAPI()
+r = redis.Redis(host="redis", port=6379, db=0)
 
 @app.get("/")
 def root():
@@ -73,7 +77,7 @@ def delete_user_endpoint(username: str):
         print("Unexpected error while deleting user has occurred:", str(e))
         return JSONResponse(content={"error": str(e)}, status_code=503)
 
-sessions = {}
+# sessions = {}
 
 @app.post("/login")
 def login_user(user: UserLogin):
@@ -90,9 +94,11 @@ def login_user(user: UserLogin):
         if bcrypt.checkpw(user.password.encode('utf-8'), user_data["password_hash"].encode('utf-8')):
             response = JSONResponse(content={"message": f"User {user.username} logged in successfully!"}, status_code=200)
             session_id = secrets.token_hex(16)
-            sessions[session_id] = user_data["username"]
+            # sessions[session_id] = user_data["username"]
+            r.set(session_id, user_data["username"], ex=3600)
             print("DEBUG: Generated session ID:", session_id)
-            print("DEBUG: Session data:", sessions)
+            # print("DEBUG: Session data:", sessions)
+            print("DEBUG: Session data:", r)
             print("DEBUG: User data:", user_data)
 
             response.set_cookie(
@@ -113,24 +119,30 @@ def login_user(user: UserLogin):
 @app.get("/authenticated")
 def get_authenticated_user(request: Request):
     session_id = request.cookies.get("session_id")
-    if not session_id or session_id not in sessions:
+    if not session_id:
         return JSONResponse(content={"authenticated": False}, status_code=401)
+    username = r.get(session_id)
+    if not username:
+        return JSONResponse(content={"authenticated": False}, status_code=401)
+    username = username.decode('utf-8')
     return JSONResponse(content={"authenticated": True}, status_code=200)
 
 @app.get("/me")
 def get_current_user(request: Request):
     print("DEBUG: Current user request received")
     session_id = request.cookies.get("session_id")
-    if not session_id or session_id not in sessions:
+    if not session_id:
+        return JSONResponse(content={"error": "Session ID not found"}, status_code=400)
+    username = r.get(session_id)
+    if not username:
         return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
 
-    username = sessions[session_id]
+    username = username.decode('utf-8')
     with db_connection_() as conn:
         user = get_user(conn, username)
     
     print("DEBUG: Current user data:", user)
     print("DEBUG: Session ID:", session_id)
-    print("DEBUG: Session data:", sessions)
 
     if not user:
         return JSONResponse(content={"error": "User not found"}, status_code=404)
@@ -144,3 +156,17 @@ def get_current_user(request: Request):
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+@app.post("/logout")
+def logout_user(request: Request):
+    try:
+        session_id = request.cookies.get("session_id")
+        if session_id:
+            r.delete(session_id)
+
+        response = JSONResponse(content={"message": "Logged out"}, status_code=200)
+        response.delete_cookie("session_id")
+        return response
+    except Exception as e:
+        print("Unexpected error while logging out user has occurred:", str(e))
+        return JSONResponse(content={"error": str(e)}, status_code=503)
