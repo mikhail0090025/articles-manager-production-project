@@ -2,6 +2,7 @@
 import pytest
 from fastapi.testclient import TestClient
 from main import app
+from models import UserCreate, UserLogin, Article, SearchQuery
 
 client = TestClient(app)
 
@@ -48,10 +49,13 @@ def test_get_articles():
     assert isinstance(json_data, list) or "error" in json_data
 
 def test_search_articles():
-    response = client.get("/search_articles", params={"query": "Test"})
+    query = SearchQuery(query="test")
+    response = client.post("/search_articles", json=query.model_dump())
     assert response.status_code < 400 or response.status_code == 503
     json_data = response.json()
-    assert isinstance(json_data, list) or "error" in json_data
+    print("DEBUG: Search articles response:", json_data)
+    # assert isinstance(json_data, list) or "error" in json_data
+    assert "results" in json_data or "error" in json_data
 
 # --- Health check ---
 def test_root():
