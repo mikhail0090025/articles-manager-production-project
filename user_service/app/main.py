@@ -105,6 +105,7 @@ def login_user(user: UserLogin):
                 key="session_id",
                 value=session_id,
                 httponly=True,
+                secure=True,
                 max_age=3600,
                 path="/"
             )

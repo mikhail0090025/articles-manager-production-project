@@ -1,8 +1,13 @@
 services:
   redis:
     image: redis:7
-    ports:
-      - "6379:6379"
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 2s
+      retries: 5
+    restart: on-failure
     volumes:
       - redis-data:/data
       - ./redis.conf:/usr/local/etc/redis/redis.conf
@@ -15,8 +20,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-    ports:
-      - "5432:5432"
+    restart: on-failure
     volumes:
       - ./infra/pgdata:/var/lib/postgresql/data
       - ./infra/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -26,8 +30,7 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
-    ports:
-      - "5050:80"
+    restart: on-failure
     depends_on:
       - postgres
 
@@ -42,8 +45,7 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
-    ports:
-      - "8000:8000"
+    restart: on-failure
   
   vector_service:
     build: ./vector_service
@@ -56,8 +58,7 @@ services:
       interval: 5s
       timeout: 2s
       retries: 5
-    ports:
-      - "8001:8001"
+    restart: on-failure
   
   nlp_service:
     build: ./nlp_service
@@ -71,8 +72,7 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
-    ports:
-      - "8002:8002"
+    restart: on-failure
   
   gateway_service:
     build: ./gateway_service
@@ -91,6 +91,7 @@ services:
       retries: 3
     ports:
       - "8003:8003"
+    restart: on-failure
   
   frontend_service:
     build: ./frontend
@@ -104,6 +105,7 @@ services:
       retries: 3
     ports:
       - "8004:8004"
+    restart: on-failure
 
 volumes:
   redis-data:
