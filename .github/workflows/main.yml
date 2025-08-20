@@ -16,22 +16,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Install Docker
-        run: |
-          sudo apt install -y apt-transport-https ca-certificates curl software-properties-common tree
-          sudo apt update
-          sudo apt install -y docker-ce docker-ce-cli containerd.io
-          sudo systemctl start docker
-          sudo systemctl enable docker
-          sudo curl -L "https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
-          docker-compose --version
+      - name: Install Docker Compose (if needed)
+        run: docker compose version || sudo apt install docker-compose-plugin -y
 
       - name: Build Docker images
-        run: sudo docker-compose -f docker-compose.yml build
+        run: docker-compose -f docker-compose.yml build
 
       - name: Run Docker containers
-        run: sudo docker-compose -f docker-compose.yml up -d
+        run: docker-compose -f docker-compose.yml up -d
 
       - name: Wait for services ready
         run: |
@@ -46,7 +38,6 @@ jobs:
 
       - name: Run Tests
         run: |
-          sleep 40 # Wait for services to stabilize
           echo "Tests:"
           docker-compose exec -T user_service bash -c "PYTHONPATH=/app pytest"
           docker-compose exec -T vector_service bash -c "PYTHONPATH=/app pytest"
@@ -56,7 +47,7 @@ jobs:
       - name: Show logs on failure
         if: failure()
         run: |
-          sudo docker-compose logs
+          docker-compose logs
 
       - name: Stop Docker containers
-        run: sudo docker-compose -f docker-compose.yml down
+        run: docker-compose -f docker-compose.yml down
