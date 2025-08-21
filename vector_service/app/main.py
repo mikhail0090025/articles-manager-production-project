@@ -1,7 +1,11 @@
 from fastapi import FastAPI, Request
+print("DEBUG: 1")
 from pydantic import BaseModel
+print("DEBUG: 2")
 from vector_utils import get_embedding
+print("DEBUG: 3")
 from db import search_vectors, add_query_to_history, get_history
+print("DEBUG: 4")
 import requests
 app = FastAPI(title="Vector Search Service")
 
@@ -12,6 +16,7 @@ class SearchRequest(BaseModel):
 class EmbeddingRequest(BaseModel):
     text: str
 
+print("DEBUG: 5")
 @app.post("/search")
 def search(req: SearchRequest, request: Request):
     try:
@@ -78,3 +83,5 @@ def get_search_history(request: Request):
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+print("DEBUG: 6")

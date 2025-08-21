@@ -1,11 +1,15 @@
 import os
+print("DEBUG: 1")
 from dotenv import load_dotenv
 from sentence_transformers import SentenceTransformer
 import numpy as np
+print("DEBUG: 2")
 
 load_dotenv()
+print("DEBUG: 3")
 
 model = SentenceTransformer('all-MiniLM-L12-v2')
+print("DEBUG: 4")
 
 # Popular Sentence-Transformer models for embeddings:
 # 'all-MiniLM-L6-v2'       -> Small, fast, 384-dimensional, good for most tasks

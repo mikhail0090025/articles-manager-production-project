@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   redis:
     image: redis:7
@@ -11,6 +13,8 @@ services:
     volumes:
       - redis-data:/data
       - ./redis.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      - backend
 
   postgres:
     build:
@@ -24,6 +28,13 @@ services:
     volumes:
       - ./infra/pgdata:/var/lib/postgresql/data
       - ./infra/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend
 
   pgadmin:
     image: dpage/pgadmin4:7
@@ -32,80 +43,109 @@ services:
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     restart: on-failure
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend
 
   user_service:
     build: ./user_service
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
+      interval: 15s
       timeout: 5s
-      retries: 3
+      retries: 5
     restart: on-failure
-  
+    networks:
+      - backend
+
   vector_service:
     build: ./vector_service
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
-      interval: 5s
-      timeout: 2s
-      retries: 5
+      interval: 20s
+      timeout: 10s
+      retries: 10
     restart: on-failure
-  
+    ports:
+      - "8001:8001"
+    networks:
+      - backend
+
   nlp_service:
     build: ./nlp_service
     depends_on:
-      - vector_service
-      - postgres
+      vector_service:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
-      interval: 30s
+      interval: 15s
       timeout: 5s
-      retries: 3
+      retries: 5
     restart: on-failure
-  
+    networks:
+      - backend
+
   gateway_service:
     build: ./gateway_service
     depends_on:
-      - user_service
-      - vector_service
-      - nlp_service
+      user_service:
+        condition: service_healthy
+      vector_service:
+        condition: service_healthy
+      nlp_service:
+        condition: service_healthy
     environment:
       USER_SERVICE_URL: http://user_service:8000
       VECTOR_SERVICE_URL: http://vector_service:8001
       NLP_SERVICE_URL: http://nlp_service:8002
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
-      interval: 30s
+      interval: 15s
       timeout: 5s
-      retries: 3
+      retries: 5
     ports:
       - "8003:8003"
     restart: on-failure
-  
+    networks:
+      - backend
+      - frontend
+
   frontend_service:
     build: ./frontend
     depends_on:
-      - gateway_service
-      - user_service
+      gateway_service:
+        condition: service_healthy
+      user_service:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
-      interval: 30s
+      interval: 15s
       timeout: 5s
-      retries: 3
+      retries: 5
     ports:
       - "8004:8004"
     restart: on-failure
+    networks:
+      - frontend
 
 volumes:
   redis-data:
+
+networks:
+  backend:
+  frontend:
