@@ -13,8 +13,6 @@ services:
     volumes:
       - redis-data:/data
       - ./redis.conf:/usr/local/etc/redis/redis.conf
-    networks:
-      - backend
 
   postgres:
     build:
@@ -33,8 +31,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - backend
 
   pgadmin:
     image: dpage/pgadmin4:7
@@ -45,8 +41,11 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    networks:
-      - backend
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/login"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   user_service:
     build: ./user_service
@@ -61,8 +60,8 @@ services:
       timeout: 5s
       retries: 5
     restart: on-failure
-    networks:
-      - backend
+    ports:
+      - "8000:8000"
 
   vector_service:
     build: ./vector_service
@@ -76,11 +75,10 @@ services:
       interval: 20s
       timeout: 10s
       retries: 10
+      start_period: 30s
     restart: on-failure
     ports:
       - "8001:8001"
-    networks:
-      - backend
 
   nlp_service:
     build: ./nlp_service
@@ -97,8 +95,8 @@ services:
       timeout: 5s
       retries: 5
     restart: on-failure
-    networks:
-      - backend
+    ports:
+      - "8002:8002"
 
   gateway_service:
     build: ./gateway_service
@@ -121,9 +119,6 @@ services:
     ports:
       - "8003:8003"
     restart: on-failure
-    networks:
-      - backend
-      - frontend
 
   frontend_service:
     build: ./frontend
@@ -140,12 +135,6 @@ services:
     ports:
       - "8004:8004"
     restart: on-failure
-    networks:
-      - frontend
 
 volumes:
   redis-data:
-
-networks:
-  backend:
-  frontend:

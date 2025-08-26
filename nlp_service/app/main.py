@@ -38,7 +38,10 @@ def get_articles():
     global articles_initialized
     if not articles_initialized:
         print("DEBUG: Initializing articles from JSON file...")
+        import time
+        time1 = time.time()
         safe_add_all_articles()
+        print("Time for loading articles: ", time.time() - time1, "s")
         articles_initialized = True
         print("DEBUG: Articles initialized from JSON file.")
     with SessionLocal() as session:

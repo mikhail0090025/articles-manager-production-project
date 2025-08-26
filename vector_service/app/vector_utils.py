@@ -8,7 +8,9 @@ print("DEBUG: 2")
 load_dotenv()
 print("DEBUG: 3")
 
+# model = SentenceTransformer('all-MiniLM-L12-v2')
 model = SentenceTransformer('all-MiniLM-L12-v2')
+
 print("DEBUG: 4")
 
 # Popular Sentence-Transformer models for embeddings:
