@@ -19,22 +19,15 @@ services:
       context: ./infra
       dockerfile: Dockerfile_postgres
     environment:
-      # POSTGRES_USER: ${POSTGRES_USER:-}
-      # POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
-      # POSTGRES_DB: ${POSTGRES_DB:-}
-      POSTGRES_USER_FILE: /run/secrets/postgres_user
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
-      POSTGRES_DB_FILE: /run/secrets/postgres_db
-    secrets:
-      - postgres_user
-      - postgres_password
-      - postgres_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     restart: on-failure
     volumes:
       - ./infra/pgdata:/var/lib/postgresql/data
       - ./infra/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres_user 2>/dev/null || echo ${POSTGRES_USER}) -d $(cat /run/secrets/postgres_db 2>/dev/null || echo ${POSTGRES_DB})"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -42,16 +35,12 @@ services:
   pgadmin:
     image: dpage/pgadmin4:7
     environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-}
-      PGADMIN_DEFAULT_EMAIL_FILE: /run/secrets/pgadmin_email
-      PGADMIN_DEFAULT_PASSWORD_FILE: /run/secrets/pgadmin_password
-    secrets:
-      - pgadmin_email
-      - pgadmin_password
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     restart: on-failure
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/login"]
       interval: 10s
@@ -65,10 +54,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    secrets:
-      - postgres_user
-      - postgres_password
-      - postgres_db
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 15s
@@ -77,24 +64,14 @@ services:
     restart: on-failure
     ports:
       - "8000:8000"
-    command: >
-      /bin/sh -c "
-        PG_USER=$(cat /run/secrets/postgres_user) &&
-        PG_PASS=$(cat /run/secrets/postgres_password) &&
-        PG_DB=$(cat /run/secrets/postgres_db) &&
-        export DATABASE_URL=\"postgresql://${PG_USER}:${PG_PASS}@postgres:5432/${PG_DB}\" &&
-        exec uvicorn main:app --host 0.0.0.0 --port 8000
-      "
 
   vector_service:
     build: ./vector_service
     depends_on:
       postgres:
         condition: service_healthy
-    secrets:
-      - postgres_user
-      - postgres_password
-      - postgres_db
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
       interval: 20s
@@ -104,14 +81,6 @@ services:
     restart: on-failure
     ports:
       - "8001:8001"
-    command: >
-      /bin/sh -c "
-        PG_USER=$(cat /run/secrets/postgres_user) &&
-        PG_PASS=$(cat /run/secrets/postgres_password) &&
-        PG_DB=$(cat /run/secrets/postgres_db) &&
-        export DATABASE_URL=\"postgresql://${PG_USER}:${PG_PASS}@postgres:5432/${PG_DB}\" &&
-        exec uvicorn main:app --host 0.0.0.0 --port 8001
-      "
 
   nlp_service:
     build: ./nlp_service
@@ -120,10 +89,8 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
-    secrets:
-      - postgres_user
-      - postgres_password
-      - postgres_db
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
       interval: 15s
@@ -132,14 +99,6 @@ services:
     restart: on-failure
     ports:
       - "8002:8002"
-    command: >
-      /bin/sh -c "
-        PG_USER=$(cat /run/secrets/postgres_user) &&
-        PG_PASS=$(cat /run/secrets/postgres_password) &&
-        PG_DB=$(cat /run/secrets/postgres_db) &&
-        export DATABASE_URL=\"postgresql://${PG_USER}:${PG_PASS}@postgres:5432/${PG_DB}\" &&
-        exec uvicorn main:app --host 0.0.0.0 --port 8002
-      "
 
   gateway_service:
     build: ./gateway_service
@@ -179,19 +138,6 @@ services:
       - "8004:8004"
     restart: on-failure
 
-secrets:
-  postgres_user:
-    file: ./secrets/postgres_user
-  postgres_password:
-    file: ./secrets/postgres_password
-  postgres_db:
-    file: ./secrets/postgres_db
-  pgadmin_email:
-    file: ./secrets/pgadmin_email
-  pgadmin_password:
-    file: ./secrets/pgadmin_password
-
 volumes:
   redis-data:
   pgadmin-data:
-  pgdata:
